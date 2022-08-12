@@ -47,7 +47,8 @@ class SwBtnFieldWidget extends WidgetBase {
 
         $element['scurl'] = [
             '#type'             => 'textfield',
-            '#title'            => $this->t('Button URL or Action'),
+            '#title'            => $this->t('URL'),
+            '#description'      => $this->t('Local or global URL address'),
             '#default_value'    => isset($items[$delta]->scurl) ? $items[$delta]->scurl : '',
             '#element_validate' => [ [$this, 'validate_scurl'] ],
             '#required'         => $element['#required'],
