@@ -53,7 +53,7 @@ class SwBtnField extends FieldItemBase {
         $properties = [];
         $properties['mode']    = DataDefinition::create('integer')->setLabel(t('Mode'));
         $properties['caption'] = DataDefinition::create('string')->setLabel(t('Caption'));
-        $properties['scurl']   = DataDefinition::create('string')->setLabel(t('URL or Action'));
+        $properties['scurl']   = DataDefinition::create('string')->setLabel(t('URL'));
         return $properties;
     }
 }

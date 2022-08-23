@@ -2,10 +2,10 @@
 
 namespace Drupal\swbtnfield\Plugin\Field\FieldWidget;
 
-use Drupal\Component\Utility\Color;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 /**
  * @FieldWidget(
@@ -33,6 +33,8 @@ class SwBtnFieldWidget extends WidgetBase {
             '#options'          => [
                 0 => t('URL'),
                 1 => t('Popup URL'),
+                2 => t('Target blank URL'),
+                3 => t('JavaScript expression'),
             ],
             '#default_value'    => isset($items[$delta]->mode) ? $items[$delta]->mode : NULL,
             '#required'         => TRUE,
@@ -47,11 +49,11 @@ class SwBtnFieldWidget extends WidgetBase {
 
         $element['scurl'] = [
             '#type'             => 'textfield',
-            '#title'            => $this->t('URL'),
-            '#description'      => $this->t('Local or global URL address'),
+            '#title'            => $this->t('URL or JavaScript expression'),
             '#default_value'    => isset($items[$delta]->scurl) ? $items[$delta]->scurl : '',
             '#element_validate' => [ [$this, 'validate_scurl'] ],
             '#required'         => $element['#required'],
+            '#required'         => TRUE,
         ];
 
         return $element;
@@ -59,12 +61,31 @@ class SwBtnFieldWidget extends WidgetBase {
 
     public function validate_scurl($element, FormStateInterface $form_state) {
         $url = $element['#value'];
+        $uri = NULL;
 
-        $valid = strpos($url, '/') === 0 || strpos($url, '#') === 0 || strpos($url, '?') === 0;
-        $valid = $valid || strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0 || strpos($url, 'route:') === 0;
+        $vals = $form_state->getValues();
 
-        if ($valid === FALSE) {
-            $form_state->setError($element, $this->t("Invalid URL"));
+        $p0 = $element['#parents'][0];
+        $p1 = $element['#parents'][1];
+
+        if (intval($vals[$p0][$p1]['mode']) === 3) {
+            $form_state->setValueForElement($element, $url);
+            return;
         }
+
+        if (strpos($url, '/') === 0 || strpos($url, '#') === 0 || strpos($url, '?') === 0) {
+            $url = 'internal:'.$url;
+        } else if (strpos($url, '<') === 0) {
+            $url = 'route:'.$url;
+        }
+
+        try {
+            $uri = Url::fromUri($url);
+        } catch (\Exception $e) {
+            $form_state->setError($element, $e->getMessage());
+            return;
+        }
+        
+        $form_state->setValueForElement($element, $uri->toUriString());
     }
 }
